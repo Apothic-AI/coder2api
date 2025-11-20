@@ -64,3 +64,7 @@ uv run main.py gemini -- --help
 ## Logs
 
 Logs for the background services are written to the `logs/` directory when running `serve`.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

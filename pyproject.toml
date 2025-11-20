@@ -3,6 +3,10 @@ name = "coder2api"
 version = "0.1.0"
 description = "Turn Gemini-CLI, Claude Code, and Codex into a local OpenAI-compatible API endpoint."
 readme = "README.md"
+license = { text = "Apache-2.0" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+]
 requires-python = ">=3.13"
 dependencies = [
     "typer>=0.12.0",
