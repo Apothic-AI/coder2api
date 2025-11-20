@@ -3,5 +3,17 @@ name = "coder2api"
 version = "0.1.0"
 description = "Turn Gemini-CLI, Claude Code, and Codex into a local OpenAI-compatible API endpoint."
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = []
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.12.0",
+    "litestar>=2.12.0",
+    "uvicorn>=0.32.0",
+    "httpx>=0.27.0",
+    "rich>=13.9.0",
+    "chatmock",
+    "claude-code-api",
+]
+
+[tool.uv.sources]
+chatmock = { path = "coders/ChatMock", editable = true }
+claude-code-api = { path = "coders/claude-code-api", editable = true }

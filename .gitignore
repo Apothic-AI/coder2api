@@ -93,3 +93,4 @@ temp/
 *.tmp
 
 .python-version
+*.db
