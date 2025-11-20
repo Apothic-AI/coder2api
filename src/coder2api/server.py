@@ -1,5 +1,6 @@
 import httpx
 from litestar import Litestar, Request, Response, get
+from litestar.response import Stream
 from litestar.status_codes import HTTP_200_OK
 from litestar.exceptions import HTTPException
 import os
@@ -12,7 +13,6 @@ CC_PORT = int(os.environ.get("CODER2API_CC_PORT", 3003))
 async def proxy_request(request: Request, target_base_url: str, path: str) -> Response:
     # Strip leading slash to avoid double slashes when constructing url
     path = path.lstrip("/")
-    client = httpx.AsyncClient(base_url=target_base_url, timeout=60.0)
     
     # Construct the target URL
     url = f"/{path}"
@@ -24,28 +24,44 @@ async def proxy_request(request: Request, target_base_url: str, path: str) -> Re
     headers.pop("host", None)
     headers.pop("content-length", None)
     
+    # Read body
+    content = await request.body()
+    
+    client = httpx.AsyncClient(base_url=target_base_url, timeout=60.0)
     try:
-        api_response = await client.request(
+        # Build the request
+        req = client.build_request(
             method=request.method,
             url=url,
             content=content,
             headers=headers,
         )
         
-        return Response(
-            content=api_response.content,
-            status_code=api_response.status_code,
-            headers=dict(api_response.headers),
-            media_type=api_response.headers.get("content-type"),
+        # Send request with stream=True
+        r = await client.send(req, stream=True)
+        
+        async def iterator():
+            try:
+                async for chunk in r.aiter_bytes():
+                    yield chunk
+            finally:
+                await r.aclose()
+                await client.aclose()
+        
+        return Stream(
+            iterator=iterator(),
+            status_code=r.status_code,
+            headers=dict(r.headers),
+            media_type=r.headers.get("content-type"),
         )
+        
     except httpx.RequestError as exc:
+        await client.aclose()
         return Response(
             content={"error": f"Proxy error: {str(exc)}"},
             status_code=502,
             media_type="application/json"
         )
-    finally:
-        await client.aclose()
 
 @get("/health")
 async def health_check() -> dict:
