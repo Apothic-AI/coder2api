@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/bitnom/ChatMock.git
+	branch = main
+	commit = d2879a3ffe3b1491c121291cae15ed3d1b1e8b90
+	parent = 9921a1ec07820b261d0a43ad73d78aa89f72bac4
+	method = merge
+	cmdver = 0.4.9
