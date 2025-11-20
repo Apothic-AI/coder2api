@@ -72,11 +72,13 @@ def gemini(ctx: typer.Context):
     Wrapper for Gemini CLI Proxy.
     """
     args = ctx.args
-    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
+    # gemini-cli-proxy is now inside the package
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    gemini_path = os.path.join(package_dir, "gemini-cli-proxy")
     dist_index = os.path.join(gemini_path, "dist/index.js")
     
     if not os.path.exists(dist_index):
-        console.print(f"[red]Gemini Proxy not built at {dist_index}. Run 'coder2api build' or 'npm run build' in coders/gemini-cli-proxy[/red]")
+        console.print(f"[red]Gemini Proxy not built at {dist_index}. Run 'coder2api build' or check installation.[/red]")
         sys.exit(1)
     
     cmd = ["node", dist_index] + args
@@ -88,10 +90,8 @@ def build():
     Manually builds Node.js dependencies (Gemini Proxy).
     Python dependencies are installed via pip/uv sync.
     """
-    console.print(f"Project Root detected: {PROJECT_ROOT}")
-    
-    # Node.js Dependencies (Gemini Proxy)
-    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    gemini_path = os.path.join(package_dir, "gemini-cli-proxy")
     console.print(f"[bold green]Building Gemini Proxy in {gemini_path}...[/bold green]")
     
     # Check if npm is available
@@ -132,7 +132,8 @@ def serve():
     CC_PORT = "3003"
     PROXY_PORT = "8069"
     
-    log_dir = os.path.join(PROJECT_ROOT, "logs")
+    # Logs to CWD
+    log_dir = os.path.join(os.getcwd(), "logs")
     os.makedirs(log_dir, exist_ok=True)
     
     console.print(f"Logs will be written to {log_dir}")
@@ -153,7 +154,8 @@ def serve():
 
     # 1. Start Gemini Proxy
     console.print(f"[green]Starting Gemini Proxy on port {GEMINI_PORT}...[/green]")
-    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    gemini_path = os.path.join(package_dir, "gemini-cli-proxy")
     start_service("gemini", ["node", "dist/index.js", "--port", GEMINI_PORT], cwd=gemini_path)
     
     # 2. Start ChatMock

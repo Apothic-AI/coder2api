@@ -7,10 +7,12 @@ class CustomBuildHook(BuildHookInterface):
     def initialize(self, version, build_data):
         # Define the path to the Gemini proxy
         project_root = self.root
-        gemini_path = os.path.join(project_root, "coders", "gemini-cli-proxy")
+        # gemini-cli-proxy is now at src/coder2api/gemini-cli-proxy
+        gemini_path = os.path.join(project_root, "src", "coder2api", "gemini-cli-proxy")
         
         # Skip if directory doesn't exist (e.g. in a lightweight sdist without it?)
         if not os.path.exists(gemini_path):
+            print(f"WARNING: Gemini Proxy path not found at {gemini_path}")
             return
 
         print(f"Running custom build hook: Building Gemini Proxy in {gemini_path}...")
