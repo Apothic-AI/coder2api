@@ -11,7 +11,7 @@ This project uses `uv` for dependency management.
 First, install dependencies and build the sub-projects:
 
 ```bash
-uv run main.py build
+uv run coder2api build
 ```
 
 This command will:
@@ -25,7 +25,7 @@ This command will:
 Start all services and the unified proxy:
 
 ```bash
-uv run main.py serve
+uv run coder2api serve
 ```
 
 This will start:
@@ -45,18 +45,18 @@ You can also use the CLI wrappers for individual tools:
 
 **ChatMock (Codex):**
 ```bash
-uv run main.py codex --help
-uv run main.py codex login
+uv run coder2api codex --help
+uv run coder2api codex login
 ```
 
 **Claude Code API:**
 ```bash
-uv run main.py cc
+uv run coder2api cc
 ```
 
 **Gemini CLI Proxy:**
 ```bash
-uv run main.py gemini -- --help
+uv run coder2api gemini -- --help
 ```
 
 ## Logs
