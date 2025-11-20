@@ -9,6 +9,37 @@ from rich.console import Console
 app = typer.Typer(add_completion=False)
 console = Console()
 
+def find_project_root() -> str:
+    """
+    Locate the project root (containing 'coders').
+    1. Check CWD.
+    2. Check relative to this file (installed package).
+    """
+    # Check if we are in the root (dev mode)
+    cwd = os.getcwd()
+    if os.path.isdir(os.path.join(cwd, "coders")):
+        return cwd
+    
+    # Check if installed package (e.g. site-packages/coder2api)
+    # This file is in src/coder2api/main.py or site-packages/coder2api/main.py
+    # We need to find where 'coders' is relative to the package?
+    # If installed via pip, 'coders' might not be there unless packaged.
+    # Assuming we might be running from a clone but invoked via 'uv run' from a subdirectory?
+    
+    # Try traversing up from __file__
+    current_path = os.path.abspath(os.path.dirname(__file__))
+    # Go up until we find 'coders' or hit root
+    temp_path = current_path
+    while temp_path != "/" and temp_path != "":
+        if os.path.isdir(os.path.join(temp_path, "coders")):
+            return temp_path
+        temp_path = os.path.dirname(temp_path)
+        
+    # Fallback to CWD and hope for the best (or fail later)
+    return cwd
+
+PROJECT_ROOT = find_project_root()
+
 def run_subprocess(command: List[str], env=None, cwd=None):
     try:
         if cwd:
@@ -45,16 +76,14 @@ def gemini(ctx: typer.Context):
     Wrapper for Gemini CLI Proxy.
     """
     args = ctx.args
-    # Assuming main.py is in root
-    gemini_path = os.path.join(os.getcwd(), "coders/gemini-cli-proxy")
+    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
     dist_index = os.path.join(gemini_path, "dist/index.js")
     
     if not os.path.exists(dist_index):
-        console.print(f"[red]Gemini Proxy not built at {dist_index}. Run 'npm run build' in coders/gemini-cli-proxy[/red]")
+        console.print(f"[red]Gemini Proxy not built at {dist_index}. Run 'coder2api build' or 'npm run build' in coders/gemini-cli-proxy[/red]")
         sys.exit(1)
     
     cmd = ["node", dist_index] + args
-    # We need to change dir so node app finds its package.json etc if needed
     run_subprocess(cmd, cwd=gemini_path)
 
 @app.command()
@@ -62,12 +91,13 @@ def build():
     """
     Builds all dependencies (Python and Node.js).
     """
-    cwd = os.getcwd()
+    console.print(f"Project Root detected: {PROJECT_ROOT}")
     
     # 1. Python Dependencies (uv sync)
     console.print("[bold green]Building Python environment (uv sync)...[/bold green]")
     try:
-        subprocess.run(["uv", "sync"], check=True)
+        # Run uv sync in the project root
+        subprocess.run(["uv", "sync"], cwd=PROJECT_ROOT, check=True)
     except subprocess.CalledProcessError:
         console.print("[red]Failed to sync Python dependencies.[/red]")
         sys.exit(1)
@@ -76,7 +106,7 @@ def build():
         sys.exit(1)
 
     # 2. Node.js Dependencies (Gemini Proxy)
-    gemini_path = os.path.join(cwd, "coders/gemini-cli-proxy")
+    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
     console.print(f"[bold green]Building Gemini Proxy in {gemini_path}...[/bold green]")
     
     # Check if npm is available
@@ -117,8 +147,7 @@ def serve():
     CC_PORT = "3003"
     PROXY_PORT = "8069"
     
-    cwd = os.getcwd()
-    log_dir = os.path.join(cwd, "logs")
+    log_dir = os.path.join(PROJECT_ROOT, "logs")
     os.makedirs(log_dir, exist_ok=True)
     
     console.print(f"Logs will be written to {log_dir}")
@@ -139,7 +168,7 @@ def serve():
 
     # 1. Start Gemini Proxy
     console.print(f"[green]Starting Gemini Proxy on port {GEMINI_PORT}...[/green]")
-    gemini_path = os.path.join(cwd, "coders/gemini-cli-proxy")
+    gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
     start_service("gemini", ["node", "dist/index.js", "--port", GEMINI_PORT], cwd=gemini_path)
     
     # 2. Start ChatMock
@@ -150,12 +179,7 @@ def serve():
     console.print(f"[green]Starting Claude Code API on port {CC_PORT}...[/green]")
     start_service("claude-code", [sys.executable, "-m", "uvicorn", "claude_code_api.main:app", "--port", CC_PORT, "--host", "127.0.0.1"])
     
-    # 4. Start Coder2API Proxy (Foreground or Background? Let's keep proxy in fg to see its logs?)
-    # Actually, better to keep it controlled like others, but stream its output to console?
-    # The user expects `coder2api serve` to run. If we hide everything, it looks dead.
-    # Let's run the proxy in the main process? No, we want to catch signals.
-    # We'll run proxy as subprocess but pipe output to stdout.
-    
+    # 4. Start Coder2API Proxy
     console.print(f"[bold green]Starting Unified Proxy on port {PROXY_PORT}...[/bold green]")
     console.print(f"  - http://localhost:{PROXY_PORT}/codex -> ChatMock")
     console.print(f"  - http://localhost:{PROXY_PORT}/cc    -> Claude Code API")
@@ -167,8 +191,9 @@ def serve():
     env["CODER2API_CC_PORT"] = CC_PORT
     
     # We run uvicorn for the proxy
+    # Note: we use 'coder2api.server:app' assuming the package is installed/available
     p_proxy = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "server:app", "--port", PROXY_PORT, "--host", "0.0.0.0"],
+        [sys.executable, "-m", "uvicorn", "coder2api.server:app", "--port", PROXY_PORT, "--host", "0.0.0.0"],
         env=env
     )
     processes.append(p_proxy)
