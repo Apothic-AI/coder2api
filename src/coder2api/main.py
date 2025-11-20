@@ -12,30 +12,26 @@ console = Console()
 def find_project_root() -> str:
     """
     Locate the project root (containing 'coders').
-    1. Check CWD.
-    2. Check relative to this file (installed package).
     """
-    # Check if we are in the root (dev mode)
+    # 1. Check if 'coders' is inside the package (pip installed)
+    # __file__ is src/coder2api/main.py or site-packages/coder2api/main.py
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.isdir(os.path.join(package_dir, "coders")):
+        return package_dir
+
+    # 2. Check CWD (Dev mode root)
     cwd = os.getcwd()
     if os.path.isdir(os.path.join(cwd, "coders")):
         return cwd
-    
-    # Check if installed package (e.g. site-packages/coder2api)
-    # This file is in src/coder2api/main.py or site-packages/coder2api/main.py
-    # We need to find where 'coders' is relative to the package?
-    # If installed via pip, 'coders' might not be there unless packaged.
-    # Assuming we might be running from a clone but invoked via 'uv run' from a subdirectory?
-    
-    # Try traversing up from __file__
-    current_path = os.path.abspath(os.path.dirname(__file__))
-    # Go up until we find 'coders' or hit root
-    temp_path = current_path
+
+    # 3. Traverse up from __file__ (Dev mode src/)
+    temp_path = package_dir
     while temp_path != "/" and temp_path != "":
         if os.path.isdir(os.path.join(temp_path, "coders")):
             return temp_path
         temp_path = os.path.dirname(temp_path)
         
-    # Fallback to CWD and hope for the best (or fail later)
+    # Fallback
     return cwd
 
 PROJECT_ROOT = find_project_root()
