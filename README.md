@@ -1,34 +1,62 @@
 # coder2api
 
-A unified wrapper for [Gemini CLI Proxy](coders/gemini-cli-proxy), [Claude Code API](coders/claude-code-api), and [ChatMock](coders/ChatMock).
+A unified wrapper for [Gemini CLI Proxy](https://github.com/bitnom/gemini-cli-proxy), [Claude Code API](https://github.com/codingworkflow/claude-code-api), and [ChatMock](https://github.com/RayBytes/ChatMock).
 
 This tool provides a single entry point to run and manage these local coding agent proxies, exposing them via a unified API endpoint.
 
-## Installation
+## Prerequisites
 
-This project uses `uv` for dependency management.
+- **Python 3.13+**
+- **Node.js & npm** (Required for Gemini CLI Proxy)
+
+## Quick Start
+
+You can run `coder2api` directly without installing it using `uvx` (part of [uv](https://github.com/astral-sh/uv)):
 
 ```bash
-uv sync
+uvx coder2api serve
 ```
 
-Because `coder2api` includes a Hatch build hook, running `uv sync` (or `pip install`) will automatically:
-1.  Install Python dependencies.
-2.  Run `npm install` and `npm run build` for the Gemini CLI Proxy (Node.js).
+Or using `pipx`:
 
-*Note: You must have Node.js and npm installed on your system.*
+```bash
+pipx run coder2api serve
+```
+
+This command will:
+1.  Download the package.
+2.  Automatically install Node.js dependencies for the Gemini proxy (if missing).
+3.  Start all services and the unified proxy.
+
+## Installation
+
+If you prefer to install it globally:
+
+### Using pipx (Recommended)
+
+```bash
+pipx install coder2api
+coder2api serve
+```
+
+### Using uv
+
+```bash
+uv tool install coder2api
+coder2api serve
+```
 
 ## Usage
 
 ### Unified Server
 
-Start all services and the unified proxy:
+The primary command starts all backend services and the proxy:
 
 ```bash
-uv run coder2api serve
+coder2api serve
 ```
 
-This will start:
+This starts:
 - **Gemini CLI Proxy** on port `3001`
 - **ChatMock** on port `3002`
 - **Claude Code API** on port `3003`
@@ -45,23 +73,40 @@ You can also use the CLI wrappers for individual tools:
 
 **ChatMock (Codex):**
 ```bash
-uv run coder2api codex --help
-uv run coder2api codex login
+coder2api codex --help
+coder2api codex login
 ```
 
 **Claude Code API:**
 ```bash
-uv run coder2api cc
+coder2api cc
 ```
 
 **Gemini CLI Proxy:**
 ```bash
-uv run coder2api gemini -- --help
+coder2api gemini -- --help
+```
+
+## Development
+
+If you want to contribute or run from source:
+
+1.  Clone the repository.
+2.  Install dependencies using `uv`:
+
+```bash
+uv sync
+```
+
+3.  Run using `uv run`:
+
+```bash
+uv run coder2api serve
 ```
 
 ## Logs
 
-Logs for the background services are written to the `logs/` directory when running `serve`.
+Logs for the background services are written to the `logs/` directory in the working directory where you run the command.
 
 ## License
 

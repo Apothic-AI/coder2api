@@ -17,18 +17,26 @@ class CustomBuildHook(BuildHookInterface):
 
         print(f"Running custom build hook: Building Gemini Proxy in {gemini_path}...")
         
+        npm_cmd = "npm"
         # Check if npm is available
         try:
             subprocess.run(["npm", "--version"], check=True, capture_output=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
-            print("WARNING: 'npm' not found. Skipping Gemini Proxy build. Please ensure Node.js is installed.")
-            return
+            # Try pnpm
+            try:
+                subprocess.run(["pnpm", "--version"], check=True, capture_output=True)
+                npm_cmd = "pnpm"
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("WARNING: neither 'npm' nor 'pnpm' found. Skipping Gemini Proxy build. Please ensure Node.js is installed.")
+                return
 
-        # Run npm install and npm run build
+        print(f"Using {npm_cmd} for build.")
+
+        # Run install and build
         try:
-            # We use shell=False for security, assuming npm is in PATH
-            subprocess.run(["npm", "install"], cwd=gemini_path, check=True)
-            subprocess.run(["npm", "run", "build"], cwd=gemini_path, check=True)
+            # We use shell=False for security
+            subprocess.run([npm_cmd, "install"], cwd=gemini_path, check=True)
+            subprocess.run([npm_cmd, "run", "build"], cwd=gemini_path, check=True)
             print("Gemini Proxy built successfully.")
         except subprocess.CalledProcessError as e:
             print(f"ERROR: Failed to build Gemini Proxy: {e}")
