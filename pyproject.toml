@@ -45,6 +45,8 @@ include = [
 [tool.hatch.build.targets.wheel.force-include]
 "coders" = "coder2api/coders"
 
+[tool.hatch.build.hooks.custom]
+
 [tool.uv.sources]
 chatmock = { path = "coders/ChatMock", editable = true }
 claude-code-api = { path = "coders/claude-code-api", editable = true }

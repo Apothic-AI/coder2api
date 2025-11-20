@@ -89,23 +89,12 @@ def gemini(ctx: typer.Context):
 @app.command()
 def build():
     """
-    Builds all dependencies (Python and Node.js).
+    Manually builds Node.js dependencies (Gemini Proxy).
+    Python dependencies are installed via pip/uv sync.
     """
     console.print(f"Project Root detected: {PROJECT_ROOT}")
     
-    # 1. Python Dependencies (uv sync)
-    console.print("[bold green]Building Python environment (uv sync)...[/bold green]")
-    try:
-        # Run uv sync in the project root
-        subprocess.run(["uv", "sync"], cwd=PROJECT_ROOT, check=True)
-    except subprocess.CalledProcessError:
-        console.print("[red]Failed to sync Python dependencies.[/red]")
-        sys.exit(1)
-    except FileNotFoundError:
-        console.print("[red]'uv' command not found. Please install uv.[/red]")
-        sys.exit(1)
-
-    # 2. Node.js Dependencies (Gemini Proxy)
+    # Node.js Dependencies (Gemini Proxy)
     gemini_path = os.path.join(PROJECT_ROOT, "coders/gemini-cli-proxy")
     console.print(f"[bold green]Building Gemini Proxy in {gemini_path}...[/bold green]")
     

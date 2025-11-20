@@ -8,15 +8,15 @@ This tool provides a single entry point to run and manage these local coding age
 
 This project uses `uv` for dependency management.
 
-First, install dependencies and build the sub-projects:
-
 ```bash
-uv run coder2api build
+uv sync
 ```
 
-This command will:
-1.  Run `uv sync` to install Python dependencies.
-2.  Run `npm install && npm run build` in `coders/gemini-cli-proxy`.
+Because `coder2api` includes a Hatch build hook, running `uv sync` (or `pip install`) will automatically:
+1.  Install Python dependencies.
+2.  Run `npm install` and `npm run build` for the Gemini CLI Proxy (Node.js).
+
+*Note: You must have Node.js and npm installed on your system.*
 
 ## Usage
 
