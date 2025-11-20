@@ -49,7 +49,7 @@ async def proxy_request(request: Request, target_base_url: str, path: str) -> Re
                 await client.aclose()
         
         return Stream(
-            iterator=iterator(),
+            iterator(),
             status_code=r.status_code,
             headers=dict(r.headers),
             media_type=r.headers.get("content-type"),
