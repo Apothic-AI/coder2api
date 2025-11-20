@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "coder2api"
-version = "0.1.0"
+version = "0.1.1"
 description = "Turn Gemini-CLI, Claude Code, and Codex into a local OpenAI-compatible API endpoint."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
@@ -51,6 +51,7 @@ coder2api = "coder2api.main:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/coder2api", "src/chatmock", "src/claude_code_api"]
+exclude = ["**/node_modules", "**/.git"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -58,5 +59,6 @@ include = [
     "src/chatmock",
     "src/claude_code_api",
 ]
+exclude = ["**/node_modules", "**/.git"]
 
 [tool.hatch.build.hooks.custom]

@@ -76,10 +76,25 @@ def gemini(ctx: typer.Context):
     package_dir = os.path.dirname(os.path.abspath(__file__))
     gemini_path = os.path.join(package_dir, "gemini-cli-proxy")
     dist_index = os.path.join(gemini_path, "dist/index.js")
+    node_modules = os.path.join(gemini_path, "node_modules")
     
+    # Check if node_modules exists
+    if not os.path.exists(node_modules):
+        console.print("[yellow]Node dependencies not found. Installing...[/yellow]")
+        try:
+            subprocess.run(["npm", "install"], cwd=gemini_path, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+             console.print("[red]npm not found or failed. Please install Node.js and run 'npm install' in the gemini-cli-proxy directory.[/red]")
+             sys.exit(1)
+
+    # Check if built
     if not os.path.exists(dist_index):
-        console.print(f"[red]Gemini Proxy not built at {dist_index}. Run 'coder2api build' or check installation.[/red]")
-        sys.exit(1)
+        console.print("[yellow]Gemini Proxy not built. Building...[/yellow]")
+        try:
+            subprocess.run(["npm", "run", "build"], cwd=gemini_path, check=True)
+        except subprocess.CalledProcessError:
+            console.print("[red]Build failed.[/red]")
+            sys.exit(1)
     
     cmd = ["node", dist_index] + args
     run_subprocess(cmd, cwd=gemini_path)
@@ -156,6 +171,19 @@ def serve():
     console.print(f"[green]Starting Gemini Proxy on port {GEMINI_PORT}...[/green]")
     package_dir = os.path.dirname(os.path.abspath(__file__))
     gemini_path = os.path.join(package_dir, "gemini-cli-proxy")
+    
+    # Ensure deps and build
+    node_modules = os.path.join(gemini_path, "node_modules")
+    dist_index = os.path.join(gemini_path, "dist/index.js")
+    
+    if not os.path.exists(node_modules):
+        console.print("[yellow]Gemini dependencies missing. Installing...[/yellow]")
+        subprocess.run(["npm", "install"], cwd=gemini_path, check=True)
+        
+    if not os.path.exists(dist_index):
+        console.print("[yellow]Gemini build missing. Building...[/yellow]")
+        subprocess.run(["npm", "run", "build"], cwd=gemini_path, check=True)
+
     start_service("gemini", ["node", "dist/index.js", "--port", GEMINI_PORT], cwd=gemini_path)
     
     # 2. Start ChatMock
