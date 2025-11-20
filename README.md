@@ -8,17 +8,15 @@ This tool provides a single entry point to run and manage these local coding age
 
 This project uses `uv` for dependency management.
 
-```bash
-uv sync
-```
-
-Ensure you have built the Node.js dependency for Gemini Proxy:
+First, install dependencies and build the sub-projects:
 
 ```bash
-cd coders/gemini-cli-proxy
-npm install && npm run build
-cd ../..
+uv run main.py build
 ```
+
+This command will:
+1.  Run `uv sync` to install Python dependencies.
+2.  Run `npm install && npm run build` in `coders/gemini-cli-proxy`.
 
 ## Usage
 

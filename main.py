@@ -58,6 +58,44 @@ def gemini(ctx: typer.Context):
     run_subprocess(cmd, cwd=gemini_path)
 
 @app.command()
+def build():
+    """
+    Builds all dependencies (Python and Node.js).
+    """
+    cwd = os.getcwd()
+    
+    # 1. Python Dependencies (uv sync)
+    console.print("[bold green]Building Python environment (uv sync)...[/bold green]")
+    try:
+        subprocess.run(["uv", "sync"], check=True)
+    except subprocess.CalledProcessError:
+        console.print("[red]Failed to sync Python dependencies.[/red]")
+        sys.exit(1)
+    except FileNotFoundError:
+        console.print("[red]'uv' command not found. Please install uv.[/red]")
+        sys.exit(1)
+
+    # 2. Node.js Dependencies (Gemini Proxy)
+    gemini_path = os.path.join(cwd, "coders/gemini-cli-proxy")
+    console.print(f"[bold green]Building Gemini Proxy in {gemini_path}...[/bold green]")
+    
+    # Check if npm is available
+    try:
+        subprocess.run(["npm", "--version"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+         console.print("[red]npm not found. Please install Node.js and npm.[/red]")
+         sys.exit(1)
+
+    try:
+        subprocess.run(["npm", "install"], cwd=gemini_path, check=True)
+        subprocess.run(["npm", "run", "build"], cwd=gemini_path, check=True)
+    except subprocess.CalledProcessError:
+        console.print("[red]Failed to build Gemini Proxy.[/red]")
+        sys.exit(1)
+        
+    console.print("[bold green]Build complete![/bold green]")
+
+@app.command()
 def serve():
     """
     Starts all services and the unified proxy.
